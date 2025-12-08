@@ -10,13 +10,47 @@ use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
 {
-    public function index()
+    // public function index()
+    // {
+    //     return response()->json(
+    //         User::orderBy('id', 'desc')->get(),
+    //         200
+    //     );
+    // }
+
+    public function index(Request $request)
     {
-        return response()->json(
-            User::orderBy('id', 'desc')->get(),
-            200
-        );
+        $query = User::query()->orderBy('id', 'desc');
+
+        // Optional: search by name, email, job_id
+        if ($search = $request->input('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('job_id', 'like', "%{$search}%");
+            });
+        }
+
+        // Optional: filter by status (active / pending)
+        if ($status = $request->input('status')) {
+            $query->where('status', $status);
+        }
+
+        // Optional: filter by role, if ever needed
+        if ($role = $request->input('role')) {
+            $query->where('role', $role);
+        }
+
+        // Per-page size (default 9 for nice 3x3 card grid)
+        $perPage = (int) $request->input('per_page', 9);
+
+        $users = $query->paginate($perPage);
+
+        // Laravel pagination already returns:
+        // data, current_page, last_page, total, per_page, etc.
+        return response()->json($users, 200);
     }
+
 
     public function store(Request $request)
     {
@@ -99,4 +133,16 @@ class UserController extends Controller
             'message' => 'User deleted successfully.'
         ], 200);
     }
+
+    public function show($id)
+    {
+        $user = User::find($id);
+
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        return response()->json($user, 200);
+    }
+
 }
