@@ -3,10 +3,11 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-use App\Http\Controllers\Api\AuthApiController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\AuthApiController;
 use App\Http\Controllers\Api\LeaveTypeController;
 use App\Http\Controllers\Api\LeaveBalanceController;
+use App\Http\Controllers\Api\LeaveRequestController;
 
 // PUBLIC ROUTES
 Route::post('/register', [AuthApiController::class, 'register']);
@@ -57,6 +58,20 @@ Route::middleware('auth:sanctum')->group(function () {
          */
         Route::get('/users/{id}/leave-balances', [LeaveBalanceController::class, 'getLeaveBalances']);
         Route::post('/users/{id}/leave-balances', [LeaveBalanceController::class, 'assignLeaveBalance']);
+
+        /**
+         * LEAVE REQUEST MANAGEMENT (Admin only)
+         */
+        // Admin can view all leave requests
+        Route::get('/leave-requests', [LeaveRequestController::class, 'index']);
+
+        // Admin can view leave request details
+        Route::get('/leave-requests/{id}', [LeaveRequestController::class, 'show']);
+
+        // Admin can approve or reject leave requests
+        Route::patch('/leave-requests/{id}/status', [LeaveRequestController::class, 'updateStatus']);
+
+
     });
 
     // Logout
